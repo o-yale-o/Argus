@@ -21,6 +21,7 @@ mod recorder;
 mod regions;
 mod release_notes;
 mod scrollbar;
+mod search;
 mod shift;
 mod tables;
 mod test_control;
