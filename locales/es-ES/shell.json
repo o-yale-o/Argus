@@ -12,6 +12,7 @@
     "startup": "Inicio",
     "network": "Conexiones",
     "history": "Historial",
+    "blacklist": "Bloqueados",
     "settings": "Configuración",
     "about": "Acerca de"
   },

@@ -12,6 +12,7 @@
     "startup": "Démarrage",
     "network": "Connexions",
     "history": "Historique",
+    "blacklist": "Liste noire",
     "settings": "Paramètres",
     "about": "À propos"
   },

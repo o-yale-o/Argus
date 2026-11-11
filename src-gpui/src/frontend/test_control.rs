@@ -486,6 +486,7 @@ impl Desktop {
                 "vitals":self.vitals_band_state(),
                 "visibility":{"enabled":self.prefs.get::<bool>(visibility::preference(&self.page),false),
                     "pids":self.rows.iter().filter(|row|row.section.is_none()).flat_map(|row| if row.members.is_empty(){std::slice::from_ref(&row.raw)}else{row.members.as_slice()}).filter_map(|p|p["pid"].as_u64()).collect::<std::collections::BTreeSet<_>>()},
+                "blacklist":{"entries":blacklist::names(&self.prefs)},
                 "processTree":{"view":self.view,"visibleRows":self.rows.len(),"visibleChildren":self.rows.iter().filter(|row|row.depth > 0).count(),"expandedParents":self.rows.iter().filter(|row|row.expandable && row.expanded).count(),"searching":!self.query.trim().is_empty()},
                 "animations":{"ui":!cx.reduce_motion(),"window":crate::window_motion::enabled(),"charts":format!("{:?}",self.chart_clock.borrow().mode)},
                 "cpuTemperatureHistory":{"recentSamples":temperature.len().min(60),"recentMissing":temperature.iter().rev().take(60).filter(|(_,value)|value.is_none()).count(),"last":temperature.last().and_then(|(_,value)|*value)},

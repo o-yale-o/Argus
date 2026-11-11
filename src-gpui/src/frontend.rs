@@ -2,6 +2,7 @@
 mod appearance;
 mod assets;
 mod backend;
+mod blacklist;
 mod charts;
 mod collation;
 mod columns;
@@ -50,22 +51,23 @@ use std::{
     time::{Duration, Instant},
 };
 use theme::{Palette, icon, label};
-const PAGES: [(&str, &str); 8] = [
+const PAGES: [(&str, &str); 9] = [
     ("processes", "ProcessesIcon"),
     ("performance", "PulseIcon"),
     ("services", "ServicesIcon"),
     ("startup", "PowerIcon"),
     ("network", "GlobeIcon"),
     ("history", "HistoryIcon"),
+    ("blacklist", "ShieldIcon"),
     ("settings", "SettingsIcon"),
     ("about", "InfoIcon"),
 ];
-/// The pages a start can open on (the `startPage` preference): all but
-/// Settings and About.
+/// The pages a start can open on (the `startPage` preference): all but the
+/// blacklist and the two system pages.
 fn start_pages() -> impl Iterator<Item = &'static (&'static str, &'static str)> {
     PAGES
         .iter()
-        .filter(|(page, _)| !matches!(*page, "settings" | "about"))
+        .filter(|(page, _)| !matches!(*page, "blacklist" | "settings" | "about"))
 }
 /// The page a start opens on: the saved `startPage` when it names one of
 /// `start_pages`, the process page otherwise.
@@ -104,6 +106,8 @@ enum Action {
     Preference(String, Value),
     /// Text to copy and the locale key naming it in the confirmation.
     Copy(String, &'static str),
+    /// An image name to add to, or remove from, the blacklist.
+    Blacklist(String),
     CloseOverlay,
     Confirm,
 }
@@ -251,6 +255,9 @@ struct Desktop {
     core_grid_size: Rc<Cell<Size<Pixels>>>,
     settings_scroll: ScrollHandle,
     about_scroll: ScrollHandle,
+    blacklist_scroll: ScrollHandle,
+    /// The blacklist page's add box, kept across frames.
+    blacklist_input: Entity<InputState>,
     device_scroll: ScrollHandle,
     settings_target: Option<usize>,
     page: String,
@@ -385,6 +392,7 @@ impl Desktop {
         cx: &mut Context<Self>,
     ) -> Self {
         let search = cx.new(|cx| InputState::new(window, cx));
+        let blacklist_input = cx.new(|cx| InputState::new(window, cx));
         let settings =
             crate::dispatch::invoke(&host, "get_settings", json!({})).unwrap_or(Value::Null);
         let info = crate::dispatch::invoke(&host, "app_info", json!({})).unwrap_or(Value::Null);
@@ -422,6 +430,8 @@ impl Desktop {
             core_grid_size: Rc::new(Cell::new(size(px(0.), px(0.)))),
             settings_scroll: ScrollHandle::new(),
             about_scroll: ScrollHandle::new(),
+            blacklist_scroll: ScrollHandle::new(),
+            blacklist_input: blacklist_input.clone(),
             device_scroll: ScrollHandle::new(),
             settings_target: None,
             // A start opens the chosen page, wherever the last run ended; an
@@ -554,6 +564,18 @@ impl Desktop {
             .push(cx.observe_in(&search, window, |this, _, window, cx| {
                 this.composition_settled(window, cx)
             }));
+        // Enter in the blacklist page's add box adds the name.
+        this.subscriptions.push(cx.subscribe_in(
+            &blacklist_input,
+            window,
+            |this, input, event, window, cx| match event {
+                InputEvent::PressEnter { .. } => {
+                    let raw = input.read(cx).value().to_string();
+                    this.add_blacklist_name(&raw, window, cx);
+                }
+                _ => {}
+            },
+        ));
         this.watch_menu_window(window, cx);
         if let Some(path) = &options.fixture {
             match std::fs::read(path)

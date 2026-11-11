@@ -12,6 +12,7 @@
     "startup": "Autostart",
     "network": "Verbindungen",
     "history": "Verlauf",
+    "blacklist": "Sperrliste",
     "settings": "Einstellungen",
     "about": "Info"
   },

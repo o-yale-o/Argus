@@ -12,6 +12,7 @@
     "startup": "啟動",
     "network": "連線",
     "history": "歷程記錄",
+    "blacklist": "黑名單",
     "settings": "設定",
     "about": "關於"
   },

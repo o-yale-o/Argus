@@ -12,6 +12,7 @@
     "startup": "スタートアップ",
     "network": "接続",
     "history": "履歴",
+    "blacklist": "拒否リスト",
     "settings": "設定",
     "about": "バージョン情報"
   },

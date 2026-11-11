@@ -12,6 +12,7 @@
     "startup": "Startup",
     "network": "Connections",
     "history": "History",
+    "blacklist": "Blacklist",
     "settings": "Settings",
     "about": "About"
   },
