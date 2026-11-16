@@ -23,6 +23,7 @@ mod regions;
 mod release_notes;
 mod scrollbar;
 mod search;
+mod search_history;
 mod shift;
 mod tables;
 mod test_control;
@@ -108,6 +109,10 @@ enum Action {
     Copy(String, &'static str),
     /// An image name to add to, or remove from, the blacklist.
     Blacklist(String),
+    /// A remembered search to put in the search box.
+    SearchHistory(String),
+    /// Forgets the current page's searches.
+    ClearSearchHistory,
     CloseOverlay,
     Confirm,
 }
@@ -557,8 +562,16 @@ impl Desktop {
                     this.rebuild_rows(false, cx);
                     cx.notify();
                 }
+                // A search leaves its mark when it is used: Enter, or the box
+                // losing the keyboard to the list.
                 InputEvent::PressEnter { .. } => {
+                    let typed = this.search.read(cx).value().to_string();
+                    this.remember_search(&typed);
                     this.focus.focus(window, cx);
+                }
+                InputEvent::Blur => {
+                    let typed = this.search.read(cx).value().to_string();
+                    this.remember_search(&typed);
                 }
                 _ => {}
             }),
